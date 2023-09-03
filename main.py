@@ -90,40 +90,59 @@ class GameState:
                         shift = True
                     keyname = pygame.key.name(event.key)
         return keyname,shift
+
+    def do(self):
+        return True
     
 
 class WaitState(GameState):
     def __init__(self):
-        fontObj = pygame.font.SysFont('yugothicuisemibold', 30)
+        fontObj = pygame.font.SysFont('yugothicuisemibold', 40)
         self.textSurfaceObj = fontObj.render("なにがとおったでしょうゲーム", True, GREEN, BLUE)
         self.textRectObj = self.textSurfaceObj.get_rect()
-        self.textRectObj.center = (300, 30)
+        self.textRectObj.center = (300, 200)
 
         self.fontd = FontDisplay()
-        self.countd = CountDisplay()
-
-        self.state = Status.COUNTDOWN
+        #self.countd = CountDisplay()
+        #self.state = Status.COUNTDOWN
 
     def do(self):
-        while True:
-            DISPLAYSURF.fill(WHITE)
+        DISPLAYSURF.fill(WHITE)
+        DISPLAYSURF.blit(self.textSurfaceObj,self.textRectObj)
 
-            keyname,shift = self.input_key()
+        keyname,shift = self.input_key()
+        if keyname is None:
+            pass
+        else:
+            return False
+        return True
 
-            if keyname is None:
+class CountdownState(GameState):
+    def __init__(self):
+        fontObj = pygame.font.SysFont('yugothicuisemibold', 40)
+        self.textSurfaceObj = fontObj.render("なにがとおったでしょうゲーム", True, GREEN, BLUE)
+        self.textRectObj = self.textSurfaceObj.get_rect()
+        self.textRectObj.center = (300, 200)
+
+        self.fontd = FontDisplay()
+        #self.countd = CountDisplay()
+        #self.state = Status.COUNTDOWN
+
+    def do(self):
+        DISPLAYSURF.fill(WHITE)
+        DISPLAYSURF.blit(self.textSurfaceObj,self.textRectObj)
+
+        keyname,shift = self.input_key()
+        if keyname is None:
+            pass
+        else:
+            if keyname == 'space':
+                print("========space")
                 pass
+            elif keyname == 'return':
+                print("========return")
             else:
-                if keyname == 'space':
-                    print("========space")
-                    pass
-                elif keyname == 'return':
-                    print("========return")
-                else:
-                    print(f"key={keyname}")
-
-
-            pygame.display.flip()
-
+                print(f"key={keyname}")
 
 
 if __name__ == '__main__':
@@ -137,8 +156,7 @@ if __name__ == '__main__':
 
     g = WaitState()
     while True:
-        if g.do():
-        if Status.WAIT:
+        if state == Status.WAIT:
             pass
         elif Status.COUNTDOWN:
             pass
@@ -147,4 +165,5 @@ if __name__ == '__main__':
         elif Status.ANSWER:
             pass
         clock.tick(30)
+        pygame.display.flip()
 
