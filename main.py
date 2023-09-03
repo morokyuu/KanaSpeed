@@ -22,11 +22,13 @@ WHITE = (255, 255, 255)
 WINDOWSIZE = (640,480)
 FRAME_RATE = 30
 
+DEBUG = True
 
 
 
-class Display:
-    def __init__(self,char="こんにちは"):
+
+class FontDisplay():
+    def __init__(self,char):
         self.font = pygame.font.SysFont('yugothicuisemibold', 70)
         self.charSurfaceObj = self.font.render(char, True, GREEN, BLUE)
         self.charRectObj = self.charSurfaceObj.get_rect()
@@ -35,15 +37,11 @@ class Display:
     def draw(self):
         DISPLAYSURF.blit(self.charSurfaceObj,self.charRectObj)
 
-
-class FontDisplay(Display):
-    def __init__(self):
-        super().__init__()
-
     def change(self,char):
         self.charSurfaceObj = self.font.render(f"{char}", True, GREEN, BLUE)
         self.charRectObj = self.charSurfaceObj.get_rect()
         self.charRectObj.center = (300, 300)
+
 
 
 
@@ -75,21 +73,43 @@ class GameState:
                     keyname = pygame.key.name(event.key)
         return keyname,shift
 
+    def transition(self):
+        pass
+
     def do(self):
         return False
 
 
+class Level1:
+    def __init__(self):
+        pass
+
+
 class ReceiveState(GameState):
     def __init__(self):
-        self.countd = CountDisplay()
-        self.count = 0
+        self.answer = random.choice(['5','7','3'])
+        self.fontd = FontDisplay(self.answer)
+        self.timer = 0
+        self.x = -100
+        self.center = self.fontd.charRectObj.center
+
+    def _draw_tobira(self):
+        WIDTH = 180
+        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(0, 0, WIDTH, WINDOWSIZE[1]))
+        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(WINDOWSIZE[0] - WIDTH, 0, WIDTH, WINDOWSIZE[1]))
+
+    def transition(self):
+        pass
 
     def do(self):
         DISPLAYSURF.fill(WHITE)
-        self.count += 1
-        self.countd.change(self.count)
-        if self.count > 5000:
-            return True
+        self.fontd.draw()
+        self._draw_tobira()
+
+        self.fontd.charRectObj.center = (self.center[0]+self.x, self.center[1])
+
+        self.x += 20
+        self.timer += 1
 
         keyname,shift = self.input_key()
         if keyname is None:
@@ -106,19 +126,20 @@ class ReceiveState(GameState):
 
 class CountdownState(GameState):
     def __init__(self):
-        self.fontd = FontDisplay()
         self.timer = 0
         self.msg = ['はじめ','1','2','3']
+        self.fontd = FontDisplay('')
 
-    def do_fontdown(self):
-        WIDTH = 180
-        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(0, 0, WIDTH, WINDOWSIZE[1]))
-        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(WINDOWSIZE[0] - WIDTH, 0, WIDTH, WINDOWSIZE[1]))
+    def transition(self):
+        return ReceiveState()
 
     def do(self):
         DISPLAYSURF.fill(WHITE)
 
-        if self.timer % FRAME_RATE == 0:
+        PERIOD = FRAME_RATE
+        if DEBUG:
+            PERIOD = 3
+        if self.timer % PERIOD == 0:
             if self.msg:
                 char = self.msg.pop()
                 self.fontd.change(char)
@@ -138,9 +159,8 @@ class WaitState(GameState):
         self.textRectObj = self.textSurfaceObj.get_rect()
         self.textRectObj.center = (300, 200)
 
-        self.fontd = FontDisplay()
-        #self.countd = CountDisplay()
-        #self.state = Status.COUNTDOWN
+    def transition(self):
+        return CountdownState()
 
     def do(self):
         DISPLAYSURF.fill(WHITE)
@@ -153,16 +173,16 @@ class WaitState(GameState):
             return True
         return False
 
-    def transition(self):
-        return CountdownState()
-
 
 
 if __name__ == '__main__':
     pygame.init()
     flags = pygame.FULLSCREEN
-    #DISPLAYSURF = pygame.display.set_mode(size=WINDOWSIZE, display=0, depth=32, flags=pygame.FULLSCREEN)
-    DISPLAYSURF = pygame.display.set_mode(size=WINDOWSIZE, display=0, depth=32)
+
+    if DEBUG:
+        DISPLAYSURF = pygame.display.set_mode(size=WINDOWSIZE, display=0, depth=32)
+    else:
+        DISPLAYSURF = pygame.display.set_mode(size=WINDOWSIZE, display=0, depth=32, flags=pygame.FULLSCREEN)
     pygame.display.set_caption('Kana Speed')
     clock = pygame.time.Clock()
     state = Status.WAIT
