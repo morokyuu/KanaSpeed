@@ -20,6 +20,7 @@ BLUE = (0, 0, 123)
 WHITE = (255, 255, 255)
 
 WINDOWSIZE = (640,480)
+FRAME_RATE = 30
 
 
 
@@ -45,20 +46,7 @@ class FontDisplay(Display):
         self.charRectObj.center = (300, 300)
 
 
-class CountDisplay(Display):
-    def __init__(self):
-        super().__init__()
-        self.count = 0
 
-    def change(self,char):
-        self.charSurfaceObj = self.font.render(f"{char}", True, GREEN, BLUE)
-        self.charRectObj = self.charSurfaceObj.get_rect()
-        self.charRectObj.center = (300, 300)
-
-    def draw(self):
-        for i in range(3,0,-1):
-            print(i)
-            time.sleep(1)
 
 class Status(Enum):
     WAIT = 0,
@@ -66,10 +54,6 @@ class Status(Enum):
     RECEIVE = 2,
     ANSWER = 3
 
-def do_countdown():
-    WIDTH = 180
-    pygame.draw.rect(DISPLAYSURF,GRAY,pygame.Rect(0,0,WIDTH,WINDOWSIZE[1]))
-    pygame.draw.rect(DISPLAYSURF,GRAY,pygame.Rect(WINDOWSIZE[0]-WIDTH,0,WIDTH,WINDOWSIZE[1]))
 
 class GameState:
     def _halt(self):
@@ -92,8 +76,60 @@ class GameState:
         return keyname,shift
 
     def do(self):
-        return True
-    
+        return False
+
+
+class ReceiveState(GameState):
+    def __init__(self):
+        self.countd = CountDisplay()
+        self.count = 0
+
+    def do(self):
+        DISPLAYSURF.fill(WHITE)
+        self.count += 1
+        self.countd.change(self.count)
+        if self.count > 5000:
+            return True
+
+        keyname,shift = self.input_key()
+        if keyname is None:
+            pass
+        else:
+            if keyname == 'space':
+                print("========space")
+                pass
+            elif keyname == 'return':
+                print("========return")
+            else:
+                print(f"key={keyname}")
+        return False
+
+class CountdownState(GameState):
+    def __init__(self):
+        self.fontd = FontDisplay()
+        self.timer = 0
+        self.msg = ['はじめ','1','2','3']
+
+    def do_fontdown(self):
+        WIDTH = 180
+        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(0, 0, WIDTH, WINDOWSIZE[1]))
+        pygame.draw.rect(DISPLAYSURF, GRAY, pygame.Rect(WINDOWSIZE[0] - WIDTH, 0, WIDTH, WINDOWSIZE[1]))
+
+    def do(self):
+        DISPLAYSURF.fill(WHITE)
+
+        if self.timer % FRAME_RATE == 0:
+            if self.msg:
+                char = self.msg.pop()
+                self.fontd.change(char)
+            else:
+                return True
+
+        self.timer += 1
+        self.fontd.draw()
+
+        keyname,shift = self.input_key()
+        return False
 
 class WaitState(GameState):
     def __init__(self):
@@ -114,35 +150,12 @@ class WaitState(GameState):
         if keyname is None:
             pass
         else:
-            return False
-        return True
+            return True
+        return False
 
-class CountdownState(GameState):
-    def __init__(self):
-        fontObj = pygame.font.SysFont('yugothicuisemibold', 40)
-        self.textSurfaceObj = fontObj.render("なにがとおったでしょうゲーム", True, GREEN, BLUE)
-        self.textRectObj = self.textSurfaceObj.get_rect()
-        self.textRectObj.center = (300, 200)
+    def transition(self):
+        return CountdownState()
 
-        self.fontd = FontDisplay()
-        #self.countd = CountDisplay()
-        #self.state = Status.COUNTDOWN
-
-    def do(self):
-        DISPLAYSURF.fill(WHITE)
-        DISPLAYSURF.blit(self.textSurfaceObj,self.textRectObj)
-
-        keyname,shift = self.input_key()
-        if keyname is None:
-            pass
-        else:
-            if keyname == 'space':
-                print("========space")
-                pass
-            elif keyname == 'return':
-                print("========return")
-            else:
-                print(f"key={keyname}")
 
 
 if __name__ == '__main__':
@@ -156,14 +169,8 @@ if __name__ == '__main__':
 
     g = WaitState()
     while True:
-        if state == Status.WAIT:
-            pass
-        elif Status.COUNTDOWN:
-            pass
-        elif Status.RECEIVE:
-            pass
-        elif Status.ANSWER:
-            pass
-        clock.tick(30)
+        if g.do():
+            g = g.transition()
+        clock.tick(FRAME_RATE)
         pygame.display.flip()
 
