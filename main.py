@@ -71,18 +71,7 @@ def do_countdown():
     pygame.draw.rect(DISPLAYSURF,GRAY,pygame.Rect(0,0,WIDTH,WINDOWSIZE[1]))
     pygame.draw.rect(DISPLAYSURF,GRAY,pygame.Rect(WINDOWSIZE[0]-WIDTH,0,WIDTH,WINDOWSIZE[1]))
 
-class GameLoop:
-    def __init__(self):
-        fontObj = pygame.font.SysFont('yugothicuisemibold', 30)
-        self.textSurfaceObj = fontObj.render("なにがとおったでしょうゲーム", True, GREEN, BLUE)
-        self.textRectObj = self.textSurfaceObj.get_rect()
-        self.textRectObj.center = (300, 30)
-
-        self.fontd = FontDisplay()
-        self.countd = CountDisplay()
-
-        self.state = Status.COUNTDOWN
-
+class GameState:
     def _halt(self):
         pygame.quit()
         sys.exit()
@@ -101,6 +90,19 @@ class GameLoop:
                         shift = True
                     keyname = pygame.key.name(event.key)
         return keyname,shift
+    
+
+class WaitState(GameState):
+    def __init__(self):
+        fontObj = pygame.font.SysFont('yugothicuisemibold', 30)
+        self.textSurfaceObj = fontObj.render("なにがとおったでしょうゲーム", True, GREEN, BLUE)
+        self.textRectObj = self.textSurfaceObj.get_rect()
+        self.textRectObj.center = (300, 30)
+
+        self.fontd = FontDisplay()
+        self.countd = CountDisplay()
+
+        self.state = Status.COUNTDOWN
 
     def do(self):
         while True:
@@ -133,17 +135,16 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     state = Status.WAIT
 
-    g = GameLoop()
+    g = WaitState()
     while True:
+        if g.do():
         if Status.WAIT:
             pass
         elif Status.COUNTDOWN:
-            do_countdown()
             pass
         elif Status.RECEIVE:
             pass
         elif Status.ANSWER:
             pass
-        g.do()
         clock.tick(30)
 
