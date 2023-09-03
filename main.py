@@ -80,18 +80,34 @@ class GameState:
         return False
 
 
-class Level1:
-    def __init__(self):
+class Level:
+    def __init__(self,answer):
+        self.answer = answer
+        self.timer = 0
+
+    def check(self,char):
         pass
+
+class Level1(Level):
+    def __init__(self):
+        answer = random.choice(['5','7','3'])
+        super().__init__(answer)
+
+        self.fontd = FontDisplay(answer)
+        self.x = -100
+        self.center = self.fontd.charRectObj.center
+
+    def draw(self):
+        self.fontd.draw()
+        self.fontd.charRectObj.center = (self.center[0]+self.x, self.center[1])
+
+        self.x += 20
+        self.timer += 1
 
 
 class ReceiveState(GameState):
     def __init__(self):
-        self.answer = random.choice(['5','7','3'])
-        self.fontd = FontDisplay(self.answer)
-        self.timer = 0
-        self.x = -100
-        self.center = self.fontd.charRectObj.center
+        self.level = Level1()
 
     def _draw_tobira(self):
         WIDTH = 180
@@ -103,13 +119,8 @@ class ReceiveState(GameState):
 
     def do(self):
         DISPLAYSURF.fill(WHITE)
-        self.fontd.draw()
+        self.level.draw()
         self._draw_tobira()
-
-        self.fontd.charRectObj.center = (self.center[0]+self.x, self.center[1])
-
-        self.x += 20
-        self.timer += 1
 
         keyname,shift = self.input_key()
         if keyname is None:
